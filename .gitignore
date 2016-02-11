@@ -1,0 +1,14 @@
+build/
+*.o
+*.log
+*.bk
+*.out
+*.dat
+*.DS_Store
+*.dropbox
+*.project
+*.cproject
+*.network
+*.xcworkspacedata
+*.xcuserstate
+*.gch
