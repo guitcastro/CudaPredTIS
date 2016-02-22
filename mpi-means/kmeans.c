@@ -31,7 +31,7 @@ void kmeans() {
     
     //Initialize labels
 #pragma omp parallel for
-    for(long i = 0;i < data_size;i++) {
+    for(size_t i = mpi_rank;i < data_size;i+= mpi_size) {
         send_label[i] = -1;
     }
     int pc = 0;
