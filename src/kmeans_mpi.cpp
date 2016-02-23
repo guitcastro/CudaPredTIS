@@ -31,12 +31,28 @@ inline void logDistanceSequence(sequence_t sequence){
     #endif
 }
 
-void kmeans() {
-	long delta; //Number of objects has diverged in current iteration
-	long nearest; //Nearest centroid
-	unsigned int distance,min_distance; //distance calculated by relation point-cluster
+inline void logDistanceFromCluster(sequence_t sequence, int cluster, int distance){
+    #if DEBUG
+        printf("Distance from cluster %3ld:", cluster);
+        print_sequence(sequence);
+        printf("\n");
+       printf("Distance =: %d\n\n",distance);
+    #endif
+}
+
+inline void logNearestDistance(int nearest, int min_distance){
+    #if DEBUG
+        printf("Shortest distance is cluster %3ld",nearest);
+        printf("\n");
+        printf("Distance = %d\n\n",min_distance);
+    #endif
+}
+
+
+void kmeans() {	
     
 	unsigned int *tmp_centroidCount = (unsigned int*)malloc(clusters * BIT_SIZE_OF(sequence_t) * sizeof(unsigned int));
+    unsigned int *recv_tmp_centroidCount = (unsigned int*)malloc(clusters * BIT_SIZE_OF(sequence_t) * sizeof(unsigned int));
 	label = (int*)calloc(data_size,sizeof(int));
 	centroids = (sequence_t*)calloc(clusters,sizeof(sequence_t));
 
@@ -49,11 +65,11 @@ void kmeans() {
 
 
 	int pc = 0;
+    long delta = 0; 
 	do {
 
-		//Initialize tmp variables
+		delta = 0; //Number of objects has diverged in current iteration
 
-		delta = 0;
 		memset (tmp_centroidCount,0,clusters * BIT_SIZE_OF(sequence_t) * sizeof(unsigned int));
 
 		//For each point...
@@ -62,31 +78,22 @@ void kmeans() {
             
             logDistanceSequence(data[i]);
 
-			min_distance = UINT_MAX;
-			nearest = -1;
+			unsigned int min_distance = UINT_MAX;
+			long nearest = -1; //Nearest centroid nearest 
 
 			for(size_t j = 0;j < clusters;j++) {
-                distance = dist_sequence(data[i],centroids[j]);
+                unsigned distance = dist_sequence(data[i],centroids[j]);
 				if(distance < min_distance) {
 					nearest = j;
 					min_distance = distance;
 				}
-                #if DEBUG
-                    printf("Distance from cluster %3ld:",j);
-                    print_sequence(centroids[j]);
-                    printf("\n");
-                    printf("Distance =: %d\n\n",distance);
-                #endif
+                logDistanceFromCluster(centroids[j], j, distance) ;
 			}
 
 			if(label[i] != nearest) {
 				delta++;
 				label[i] = nearest;
-                #if DEBUG
-                    printf("Shortest distance is cluster %3ld",nearest);
-                    printf("\n");
-                    printf("Distance = %d\n\n",min_distance);
-                #endif
+                logNearestDistance(nearest, min_distance);
             }
 
             #if DEBUG
@@ -119,6 +126,7 @@ void kmeans() {
 		}
 
         // AQUI FAZER O REDUCE DO tmp_centroidCount
+         MPI_Allreduce(tmp_centroidCount, recv_tmp_centroidCount, clusters * BIT_SIZE_OF(sequence_t) ,MPI_UNSIGNED , MPI_SUM,MPI_COMM_WORLD);
 
         #if DEBUG
         for (size_t k=0;k<clusters;k++) {

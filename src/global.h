@@ -6,6 +6,10 @@
 #include <stdlib.h>
 #include "sequence.h"
 
+#if USE_MPI
+#include <mpi.h>
+#endif
+
 #define BIT_SIZE_OF(x) (sizeof(x) * 8)
 
 #define DEBUG 0

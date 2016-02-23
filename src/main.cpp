@@ -3,10 +3,6 @@
 #include "global.h"
 #include "io.h"
 
-#if USE_MPI
-#include <mpi.h>
-#endif
-
 extern void kmeans(void);
 
 sequence_t *data;
