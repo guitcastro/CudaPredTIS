@@ -3,6 +3,8 @@
 
 #if BINARY_OUT
 
+extern int mpi_rank;
+
 //assumes little endian
 void printBits(FILE *out,unsigned long int * ptr)
 {
@@ -163,12 +165,18 @@ void read_data(char *file) {
 		}
 	}
 
-	fclose(in);
-	
-	exit(0);
+	fclose(in);	
 }
 
  void write_nearest_objects(char *file) {
+
+    #if USE_MPI
+        if (mpi_rank != 0) {
+            return;
+        }
+    #endif
+
+
 	FILE *out = fopen(file,"w");
 	size_t nearest;
 	float distance,min_distance;

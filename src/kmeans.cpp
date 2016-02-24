@@ -53,12 +53,6 @@ void kmeans() {
 		//For each point...
         
 		for(size_t i = 0;i < data_size;i++) {
-            
-            #if DEBUG
-                printf("Calculating distance for sequence: ");
-                print_sequence(data[i]);
-                printf("\n\n");
-            #endif
 
 			min_distance = UINT_MAX;
 			nearest = -1;
@@ -69,27 +63,13 @@ void kmeans() {
 					nearest = j;
 					min_distance = distance;
 				}
-                #if DEBUG
-                    printf("Distance from cluster %3ld:         ",j);
-                    print_sequence(centroids[j]);
-                    printf("\n");
-                    printf("Distance =: %d\n\n",distance);
-                #endif
 			}
 
 			if(label[i] != nearest) {
 				delta++;
 				label[i] = nearest;
-                #if DEBUG
-                    printf("Shortest distance is cluster %3ld",nearest);
-                    printf("\n");
-                    printf("Distance = %d\n\n",min_distance);
-                #endif
             }
-            #if DEBUG
-                printf("label[%u] = %d\n",i,label[i]);
-            
-            #endif
+
             unsigned int *tmp_centroid = &tmp_centroidCount[label[i] * BIT_SIZE_OF(sequence_t)];
             for (size_t j=0;j<SEQ_DIM_BITS_SIZE;j++){
             	// bits tmp_centroid[0] is less significative bit from sequence_t
@@ -105,24 +85,9 @@ void kmeans() {
                     tmp_centroid[(2 *SEQ_DIM_BITS_SIZE) + j]++;
                 }
             }
-            #if DEBUG
-                printf("Added sequence %ld to group %d \n",i,label[i]);
-                printf("Group new values are:\n");
-                for (j=BIT_SIZE_OF(sequence_t)-1;j>=0; j--) {
-                    printf("%d",tmp_centroid[j]);
-                }
-                printf("\n\n");
-            #endif
+           
 		}
-        #if DEBUG
-        for (size_t k=0;k<clusters;k++){
-            unsigned int *tmp_centroid = &tmp_centroidCount[k * BIT_SIZE_OF(sequence_t)];
-            for (int x=BIT_SIZE_OF(sequence_t)-1;x>=0; x--) {
-                printf("%d",tmp_centroid[x]);
-            }
-			printf("\n");
-        }
-        #endif
+       
 		for(size_t i = 0;i < clusters;i++) {
 			sequence_t seq = make_ulong3(0,0,0);
             
@@ -144,10 +109,7 @@ void kmeans() {
                 seq.z |= (mask << (j));
             }
 			centroids[i] = seq;
-			#if DEBUG
-            	print_sequence(centroids[i]);
-            	printf("\n");
-			#endif
+			
 		}
 		printf ("%d - delta = %ld\n",pc,delta);
 		pc++;   
@@ -155,9 +117,4 @@ void kmeans() {
 	}
     
     while(delta > 0);
-#if DEBUG
-    for(i = 0;i < clusters;i++) {
-       	printf ("cluster count = %d\n",count[i]);
-    }
-#endif
 }

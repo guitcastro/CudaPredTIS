@@ -27,7 +27,9 @@ int main(int argc,char **argv) {
 	if(argc < 3) {
 		printf("Invalid arguments, usage:\n");
 		printf("\tpdtis [INPUT] [CLUSTERS]\n");
-		return 0;
+		#if USE_MPI	
+			MPI_Finalize();
+		#endif	
 	}
 	
 	//Execute processing
@@ -37,6 +39,10 @@ int main(int argc,char **argv) {
 	const char * outName = (argc > 3) ? argv[3] : argv[1];
 	sprintf(filename,"%s.out",outName);
 	write_nearest_objects(filename);
+
+#if USE_MPI	
+	MPI_Finalize();
+#endif	
 
 	return 0;	
 }

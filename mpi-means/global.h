@@ -9,7 +9,7 @@
 
 int data_size;
 int *data;
-int mpi_rank;
+int mpi_rank = 0;
 int mpi_size;
 int clusters;
 float *centroid;

@@ -40,11 +40,28 @@ inline void logDistanceFromCluster(sequence_t sequence, int cluster, int distanc
     #endif
 }
 
-inline void logNearestDistance(int nearest, int min_distance){
+inline void logNearestDistance(int nearest, int min_distance) {
     #if DEBUG
         printf("Shortest distance is cluster %3ld",nearest);
         printf("\n");
         printf("Distance = %d\n\n",min_distance);
+    #endif
+}
+
+inline void logLabel(unsigned int i, int label) {
+    #if DEBUG
+        printf("label[%u] = %d\n",i, label);
+    #endif
+}
+
+inline void logAddSquenceToGroup(int sequenceIndex, int cluster, const unsigned int* centroid_values){
+    #if DEBUG
+        printf("Added sequence %ld to cluster %d \n",sequenceIndex , cluster);
+        printf("Group new values are:\n");
+        for (int j=BIT_SIZE_OF(sequence_t)-1;j>=0; j--) {
+            printf("%d",centroid_values[j]);
+        }
+        printf("\n\n");
     #endif
 }
 
@@ -61,6 +78,7 @@ void kmeans() {
 	for(size_t i = 0;i < clusters;i++) { 
 		size_t h = i * data_size / clusters;
 		centroids[i] = copy_sequence(data[h]);
+
 	}
 
 
@@ -96,9 +114,7 @@ void kmeans() {
                 logNearestDistance(nearest, min_distance);
             }
 
-            #if DEBUG
-                printf("label[%u] = %d\n",i,label[i]);
-            #endif
+            logLabel(i, label[i]);
 
             unsigned int *tmp_centroid = &tmp_centroidCount[label[i] * BIT_SIZE_OF(sequence_t)];
             for (size_t j=0;j<SEQ_DIM_BITS_SIZE;j++){
@@ -115,22 +131,18 @@ void kmeans() {
                     tmp_centroid[(2 *SEQ_DIM_BITS_SIZE) + j]++;
                 }
             }
-            #if DEBUG
-                printf("Added sequence %ld to group %d \n",i,label[i]);
-                printf("Group new values are:\n");
-                for (j=BIT_SIZE_OF(sequence_t)-1;j>=0; j--) {
-                    printf("%d",tmp_centroid[j]);
-                }
-                printf("\n\n");
-            #endif
+            
+
+            logAddSquenceToGroup(i, label[i], tmp_centroid); 
+            
 		}
 
         // AQUI FAZER O REDUCE DO tmp_centroidCount
-         MPI_Allreduce(tmp_centroidCount, recv_tmp_centroidCount, clusters * BIT_SIZE_OF(sequence_t) ,MPI_UNSIGNED , MPI_SUM,MPI_COMM_WORLD);
+        MPI_Allreduce(tmp_centroidCount, recv_tmp_centroidCount, clusters * BIT_SIZE_OF(sequence_t) ,MPI_UNSIGNED , MPI_SUM,MPI_COMM_WORLD);
 
         #if DEBUG
         for (size_t k=0;k<clusters;k++) {
-            unsigned int *tmp_centroid = &tmp_centroidCount[k * BIT_SIZE_OF(sequence_t)];
+            unsigned int *tmp_centroid = &recv_tmp_centroidCount[k * BIT_SIZE_OF(sequence_t)];
             for (int x=BIT_SIZE_OF(sequence_t)-1;x>=0; x--) {
                 printf("%d",tmp_centroid[x]);
             }
@@ -138,10 +150,13 @@ void kmeans() {
         }
         #endif
 
+        sequence_t* local_centroids = (sequence_t*)calloc(clusters,sizeof(sequence_t));
+
+
 		for(size_t i = mpi_rank;i < clusters;i+=mpi_size) {
 			sequence_t seq = make_ulong3(0,0,0);
             
-            unsigned int *tmp_centroid = &tmp_centroidCount[i* BIT_SIZE_OF(sequence_t)];
+            unsigned int *tmp_centroid = &recv_tmp_centroidCount[i* BIT_SIZE_OF(sequence_t)];
 
             for (size_t j = 0; j < SEQ_DIM_BITS_SIZE; j+= 4) {
 
@@ -158,25 +173,24 @@ void kmeans() {
                 mask = maskForMode(bitCountZ[0],bitCountZ[1],bitCountZ[2],bitCountZ[3]);
                 seq.z |= (mask << (j));
             }
-			centroids[i] = seq;
+			local_centroids[i] = seq;
 			#if DEBUG
-            	print_sequence(centroids[i]);
+            	print_sequence(local_centroids[i]);
             	printf("\n");
 			#endif
 		}
 
-        // AQUI FAZER O REDUCE DO centroid
-        // AQUI FAZER O REDUCE DO delta
+        MPI_Allreduce(local_centroids, centroids, clusters * sizeof(sequence_t) ,MPI_BYTE , MPI_BOR ,MPI_COMM_WORLD);
+        long recv_delta = 0; 
+        MPI_Allreduce(&delta,&recv_delta,1,MPI_LONG,MPI_SUM,MPI_COMM_WORLD);
+        delta = recv_delta;
 
-		printf ("%d - delta = %ld\n",pc,delta);
+        if (mpi_rank == 0) {
+            printf ("%d - delta = %ld\n",pc,delta);
+        }
 		pc++;   
 
 	}
     
     while(delta > 0);
-#if DEBUG
-    for(i = 0;i < clusters;i++) {
-       	printf ("cluster count = %d\n",count[i]);
-    }
-#endif
 }

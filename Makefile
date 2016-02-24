@@ -1,6 +1,6 @@
 CUDA_HOME?=/Developer/NVIDIA/CUDA-7.5
 LDFLAGS=-I${CUDA_HOME}/include
-COMPILE_FLAGS=--ptxas-options=-v -c -arch=sm_20 -Xcompiler -Wall -o
+COMPILE_FLAGS=--ptxas-options=-v -c -arch=sm_20 -Xcompiler -Wall -o 
 LINK_FLAGS=-o  
 
 CUDAC=${CUDA_HOME}/bin/nvcc
