@@ -1,7 +1,16 @@
+
+UNAME_S := $(shell uname -s)
+ifeq ($(UNAME_S),Linux)		
+    endif
+    ifeq ($(UNAME_S),Darwin)
+    	COMPILE_FLAGS=-ccbin=clang-omp++ -Xcompiler -fopenmp
+    	LINK_FLAGS=-ccbin=clang-omp++ -Xcompiler -fopenmp
+endif
+
 CUDA_HOME?=/Developer/NVIDIA/CUDA-7.5
 LDFLAGS=-I${CUDA_HOME}/include
-COMPILE_FLAGS=--ptxas-options=-v -c -arch=sm_20 -Xcompiler -Wall -o 
-LINK_FLAGS=-o  
+COMPILE_FLAGS+=--ptxas-options=-v -c -arch=sm_20 -Xcompiler -Wall -o 
+LINK_FLAGS+=-o  
 
 CUDAC=${CUDA_HOME}/bin/nvcc
 CC=g++ 
@@ -14,7 +23,7 @@ OBJC =  objc/main.o ${BASE_OBJC}
 all: create_objc_dir kmeans_cuda sequence io main kmeans kmeans-mpi
 	${CUDAC} ${LINK_FLAGS} bin/kmodes objc/kmeans.o ${OBJC} 
 	${CUDAC} ${LINK_FLAGS}  bin/cuda-kmodes  objc/kmeans_cuda.o ${OBJC}  
-	${CUDAC} $(shell mpicc --showme:link) -lmpi_cxx ${LINK_FLAGS}  bin/mpi-kmodes  objc/kmeans_mpi.o objc/main_mpi.o ${BASE_OBJC}  	
+	${CUDAC} $(shell mpicc --showme:link) -lmpi_cxx ${LINK_FLAGS} bin/mpi-kmodes  objc/kmeans_mpi.o objc/main_mpi.o ${BASE_OBJC}  	
 	
 kmeans_cuda:
 	${CUDAC} ${COMPILE_FLAGS} objc/$@.o  src/$@.cu --shared
