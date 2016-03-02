@@ -1,6 +1,6 @@
 #include "global.h"
 #include "string.h"
-
+#include <omp.h>
 
 inline unsigned int maskForMode(unsigned int x,unsigned int y,unsigned int z,unsigned int w ){
     unsigned int max = x > y ? x : y;
@@ -78,35 +78,52 @@ void kmeans() {
 	for(size_t i = 0;i < clusters;i++) { 
 		size_t h = i * data_size / clusters;
 		centroids[i] = copy_sequence(data[h]);
-
 	}
 
 
 	int pc = 0;
     long delta = 0; 
+    int omp_threads_count = omp_get_max_threads();
 	do {
 
 		delta = 0; //Number of objects has diverged in current iteration
-
-		memset (tmp_centroidCount,0,clusters * BIT_SIZE_OF(sequence_t) * sizeof(unsigned int));
+		memset (tmp_centroidCount,0,clusters * BIT_SIZE_OF(sequence_t) * sizeof(unsigned int));        
 
 		//For each point...
-        
+
 		for(size_t i = mpi_rank;i < data_size;i+= mpi_size) {
+
+            
+            unsigned int omp_distances[omp_threads_count];
+            unsigned int omp_nearests[omp_threads_count];
+            for (int i = 0; i < omp_threads_count; i++){
+                omp_distances[i] = UINT_MAX;
+                omp_nearests[i] = -1;
+            }
             
             logDistanceSequence(data[i]);
 
 			unsigned int min_distance = UINT_MAX;
 			long nearest = -1; //Nearest centroid nearest 
 
+            #pragma omp parallel for
 			for(size_t j = 0;j < clusters;j++) {
+                int threadId = omp_get_thread_num();
                 unsigned distance = dist_sequence(data[i],centroids[j]);
-				if(distance < min_distance) {
-					nearest = j;
-					min_distance = distance;
-				}
+                 if(distance < omp_distances[threadId]) {
+                    omp_distances[threadId] = distance;
+                    omp_nearests[threadId] = j;
+                }
                 logDistanceFromCluster(centroids[j], j, distance) ;
 			}
+
+            for(int j = 0;j < omp_threads_count;j++) {
+                unsigned int distance = omp_distances[j];
+                if(distance < min_distance) {
+                    min_distance = distance;
+                    nearest = omp_nearests[j];
+                }
+            }
 
 			if(label[i] != nearest) {
 				delta++;
@@ -117,6 +134,7 @@ void kmeans() {
             logLabel(i, label[i]);
 
             unsigned int *tmp_centroid = &tmp_centroidCount[label[i] * BIT_SIZE_OF(sequence_t)];
+            #pragma omp parallel for
             for (size_t j=0;j<SEQ_DIM_BITS_SIZE;j++){
             	// bits tmp_centroid[0] is less significative bit from sequence_t
                 // bits tmp_centroid[0] = z << 0
