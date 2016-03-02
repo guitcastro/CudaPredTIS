@@ -10,7 +10,8 @@ endif
 CUDA_HOME?=/Developer/NVIDIA/CUDA-7.5
 LDFLAGS=-I${CUDA_HOME}/include
 COMPILE_FLAGS+=--ptxas-options=-v -c -arch=sm_20 -Xcompiler -Wall -o 
-LINK_FLAGS+=-o  
+LINK_FLAGS+=-Xcompiler -fopenmp -o  
+MPI_FLAGS=-I$(shell mpicc --showme:incdirs) $(addprefix -L,$(shell mpicc --showme:libdirs)) -Xcompiler -fopenmp
 
 CUDAC=${CUDA_HOME}/bin/nvcc
 CC=g++ 
@@ -23,15 +24,15 @@ OBJC =  objc/main.o ${BASE_OBJC}
 all: create_objc_dir kmeans_cuda sequence io main kmeans kmeans-mpi
 	${CUDAC} ${LINK_FLAGS} bin/kmodes objc/kmeans.o ${OBJC} 
 	${CUDAC} ${LINK_FLAGS}  bin/cuda-kmodes  objc/kmeans_cuda.o ${OBJC}  
-	${CUDAC} $(shell mpicc --showme:link) -lmpi_cxx ${LINK_FLAGS} bin/mpi-kmodes  objc/kmeans_mpi.o objc/main_mpi.o ${BASE_OBJC}  	
+	${CUDAC} $(MPI_FLAGS) -lmpi -lmpi_cxx ${LINK_FLAGS} bin/mpi-kmodes  objc/kmeans_mpi.o objc/main_mpi.o ${BASE_OBJC}  	
 	
 kmeans_cuda:
 	${CUDAC} ${COMPILE_FLAGS} objc/$@.o  src/$@.cu --shared
 kmeans:
 	${CUDAC} ${COMPILE_FLAGS} objc/$@.o src/$@.cpp
 kmeans-mpi:
-	${CUDAC} -lmpi -lmpi_cxx ${COMPILE_FLAGS} objc/kmeans_mpi.o src/kmeans_mpi.cpp -D USE_MPI
-	${CUDAC} -lmpi -lmpi_cxx ${COMPILE_FLAGS} objc/main_mpi.o src/main.cpp -D USE_MPI
+	${CUDAC} $(MPI_FLAGS) -lmpi -lmpi_cxx  ${COMPILE_FLAGS} objc/kmeans_mpi.o src/kmeans_mpi.cpp -D USE_MPI
+	${CUDAC} $(MPI_FLAGS) -lmpi -lmpi_cxx  ${COMPILE_FLAGS} objc/main_mpi.o src/main.cpp -D USE_MPI
 sequence:
 	${CUDAC} ${COMPILE_FLAGS} objc/$@.o src/$@.cu 
 io:
