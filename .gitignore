@@ -1,4 +1,7 @@
 build/
+bin/cuda-kmodes
+bin/kmodes
+bin/mpi-kmodes
 *.o
 *.log
 *.bk
