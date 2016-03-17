@@ -121,12 +121,13 @@ void read_data(char *file) {
 
 	FILE *in = fopen(file,"r");
 	char *line = (char*)calloc(255,sizeof(char));
-	int current_line = 0;
 
 	if(!in) {
 		printf("Invalid file!\n");
 		exit(0);
-	}
+    } else {
+        printf("Reading file %s\n", file);
+    }
 
 	//Count lines
 	data_size = 0;
@@ -139,14 +140,18 @@ void read_data(char *file) {
 			data_size++;
 		}
 	}
+    
+    printf("Number of lines = %lu\n", data_size);
 
 	//Read objects
 	data = (sequence_t*)calloc(data_size,sizeof(sequence_t));
 	rewind(in);
 
+    int current_line = 0;
 	while(!feof(in)) {
-		getline(&line,&line_size,in);		
-		if(strlen(line) > 0){	
+		getline(&line,&line_size,in);
+		if(strlen(line) > 0){
+                        
 			char subbuff[64];
 
 			memcpy(subbuff, &line[0], 64);
@@ -162,9 +167,13 @@ void read_data(char *file) {
 			sequence_t seq = make_ulong3 (x,y,z);
 			data[current_line] = seq;			
 			current_line++;            
-		}
+        } else if (current_line + 1 < data_size) {
+            printf("Error parsing line: %d\n", current_line);
+        }
 	}
-
+    
+    printf("Finish read input file\n");
+    
 	fclose(in);	
 }
 

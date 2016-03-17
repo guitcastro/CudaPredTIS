@@ -75,13 +75,27 @@
 			passBuildSettingsInEnvironment = 0;
 			productName = TD;
 		};
+		C11A66081C9B1A2A00CA57B8 /* mpi-kmodes */ = {
+			isa = PBXLegacyTarget;
+			buildArgumentsString = "$(ACTION)";
+			buildConfigurationList = C11A66091C9B1A2A00CA57B8 /* Build configuration list for PBXLegacyTarget "mpi-kmodes" */;
+			buildPhases = (
+			);
+			buildToolPath = make;
+			buildWorkingDirectory = "$(SRCROOT)";
+			dependencies = (
+			);
+			name = "mpi-kmodes";
+			passBuildSettingsInEnvironment = 0;
+			productName = TD;
+		};
 /* End PBXLegacyTarget section */
 
 /* Begin PBXProject section */
 		367824D417DBB267002102CB /* Project object */ = {
 			isa = PBXProject;
 			attributes = {
-				LastUpgradeCheck = 0500;
+				LastUpgradeCheck = 0720;
 				ORGANIZATIONNAME = "Guilherme Torres";
 			};
 			buildConfigurationList = 367824D717DBB267002102CB /* Build configuration list for PBXProject "TD" */;
@@ -97,6 +111,7 @@
 			targets = (
 				367824D817DBB267002102CB /* sequencial_means */,
 				360B461817DCE76300F93AB6 /* cuda_means */,
+				C11A66081C9B1A2A00CA57B8 /* mpi-kmodes */,
 			);
 		};
 /* End PBXProject section */
@@ -137,6 +152,7 @@
 				CLANG_WARN_INT_CONVERSION = YES;
 				CLANG_WARN__DUPLICATE_METHOD_MATCH = YES;
 				COPY_PHASE_STRIP = NO;
+				ENABLE_TESTABILITY = YES;
 				GCC_C_LANGUAGE_STANDARD = gnu99;
 				GCC_DYNAMIC_NO_PIC = NO;
 				GCC_ENABLE_OBJC_EXCEPTIONS = YES;
@@ -203,6 +219,29 @@
 			};
 			name = Release;
 		};
+		C11A660A1C9B1A2A00CA57B8 /* Debug */ = {
+			isa = XCBuildConfiguration;
+			buildSettings = {
+				ALWAYS_SEARCH_USER_PATHS = YES;
+				DEBUGGING_SYMBOLS = YES;
+				GCC_GENERATE_DEBUGGING_SYMBOLS = YES;
+				GCC_OPTIMIZATION_LEVEL = 0;
+				OTHER_CFLAGS = "";
+				OTHER_LDFLAGS = "";
+				PRODUCT_NAME = "$(TARGET_NAME)";
+			};
+			name = Debug;
+		};
+		C11A660B1C9B1A2A00CA57B8 /* Release */ = {
+			isa = XCBuildConfiguration;
+			buildSettings = {
+				ALWAYS_SEARCH_USER_PATHS = YES;
+				OTHER_CFLAGS = "";
+				OTHER_LDFLAGS = "";
+				PRODUCT_NAME = "$(TARGET_NAME)";
+			};
+			name = Release;
+		};
 /* End XCBuildConfiguration section */
 
 /* Begin XCConfigurationList section */
@@ -229,6 +268,15 @@
 			buildConfigurations = (
 				367824DC17DBB267002102CB /* Debug */,
 				367824DD17DBB267002102CB /* Release */,
+			);
+			defaultConfigurationIsVisible = 0;
+			defaultConfigurationName = Release;
+		};
+		C11A66091C9B1A2A00CA57B8 /* Build configuration list for PBXLegacyTarget "mpi-kmodes" */ = {
+			isa = XCConfigurationList;
+			buildConfigurations = (
+				C11A660A1C9B1A2A00CA57B8 /* Debug */,
+				C11A660B1C9B1A2A00CA57B8 /* Release */,
 			);
 			defaultConfigurationIsVisible = 0;
 			defaultConfigurationName = Release;

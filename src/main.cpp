@@ -52,7 +52,7 @@ void init_mpi(int argc,char **argv){
     MPI_Comm_size(MPI_COMM_WORLD,&mpi_size);
 
     if (mpi_rank == 0) {
-    	printf("Initializing using MPI");
+    	printf("Initializing using MPI\n");
 	}
 #endif
 }
