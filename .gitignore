@@ -1,4 +1,6 @@
 build/
+bin/kmodes-cuda
+bin/mpi-kmodes
 bin/cuda-kmodes
 bin/kmodes
 bin/mpi-kmodes

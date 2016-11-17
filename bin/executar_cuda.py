@@ -7,24 +7,16 @@ import fileHandle
 import platform
 import resultHandle
 
+
+PROFILER='/usr/local/cuda-7.5/bin/nvprof --system-profiling on --devices 0 '
+
 workingDir = sys.argv[4]
+for i in range (1,11):
+    commandLine = '(time ' + PROFILER + './kmodes-cuda ' + \
+                   workingDir + 'cluster' + str(i) + \
+                   ' ' + sys.argv[2] + \
+                   ') &> ' + sys.argv[4] +  'log' + str(i) + '.txt'
+    print commandLine
+    os.system(commandLine)
 
-# for i in range (1,10):
-#     commandLine = '(time ' + './cuda-means ' + \
-#                    workingDir + 'cluster' + str(i) + \
-#                    ' ' + sys.argv[2] + \
-#                    ' ' + sys.argv[4] + 'cluster' + str(i) + \
-#                    ') &> ' + sys.argv[4] +  'log' + str(i) + '.txt'
-#     print commandLine
-#     os.system(commandLine)
-# 
-# commandLine = '(time ' + './cuda-means ' + \
-#     workingDir + 'cluster10' + \
-#     ' ' + sys.argv[3] + \
-#     ' ' + sys.argv[4] + 'cluster10' \
-#     ') &> ' + sys.argv[4] +  'log10.txt'
-# print commandLine
-# os.system(commandLine)
-
-resultHandle.evalResults(workingDir,10)
-
+#resultHandle.evalResults(workingDir,10)
