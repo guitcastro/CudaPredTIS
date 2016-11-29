@@ -1,45 +1,56 @@
 
 UNAME_S := $(shell uname -s)
 ifeq ($(UNAME_S),Linux)
-	CUDA_HOME=/usr/local/cuda-7.5
+	CUDA_HOME=/home/guilherme.castro
     endif
     ifeq ($(UNAME_S),Darwin)
     	COMPILE_FLAGS=-ccbin=clang-omp++ -Xcompiler -fopenmp
     	LINK_FLAGS=-ccbin=clang-omp++ -Xcompiler -fopenmp
 endif
-
+export LANG=en_US.UTF-8
+export LC_ALL=en_US
 CUDA_HOME?=/Developer/NVIDIA/CUDA-7.5
+
 LDFLAGS=-I${CUDA_HOME}/include
-COMPILE_FLAGS+=--ptxas-options=-v -c -arch=sm_20 -Xcompiler -Wall -o
-LINK_FLAGS+=-Xcompiler -fopenmp -o
+COMPILE_FLAGS+=${LDFLAGS} ${COMMON_FLAGS}
+COMMON_FLAGS= -Wall -o
+CUDA_FLAGS=--ptxas-options=-v -arch=sm_30 -o
+LINK_FLAGS+=-o
 MPI_FLAGS=-I$(shell mpicc --showme:incdirs) $(addprefix -L,$(shell mpicc --showme:libdirs)) -Xcompiler -fopenmp
 
 CUDAC=${CUDA_HOME}/bin/nvcc
-CC=g++
-
+##/opt/intel/bin/icc
+CC=/opt/intel/bin/icc
 BASES = athaliana celegans Rattusnovergicus Musmusculus HomoSapiens gallus Drosophila
 INPUTS = input input_cuda input_mpi
 BASE_OBJC = objc/sequence.o objc/io.o
-OBJC =  objc/main.o ${BASE_OBJC}
+OBJC = objc/main.o ${BASE_OBJC}
 
-all: kmodes kmodes_cuda kmodes-mpi
+all: kmodes kmodes_cuda kmodes_mpi kmodes_openmp
 
-kmodes_cuda: kmodes
-	${CUDAC} ${COMPILE_FLAGS} objc/$@.o  src/$@.cu --shared
-	${CUDAC} ${LINK_FLAGS}  bin/kmodes-cuda objc/$@.o ${OBJC}
+kmodes_cuda: kmodes sequence_cuda
+	${CUDAC} -c ${CUDA_FLAGS}  objc/$@.o  src/$@.cu --shared
+	${CUDAC} ${CUDA_FLAGS} bin/kmodes-cuda objc/$@.o objc/sequence_cuda.o objc/io.o objc/main.o
+kmodes_mpi: kmodes power
+	${CUDAC} -fopenmp $(MPI_FLAGS) -lmpi  ${COMPILE_FLAGS} objc/$@.o src/$@.cpp
+	${CUDAC} -fopenmp $(MPI_FLAGS) -lmpi  ${COMPILE_FLAGS} objc/main_mpi.o src/main.cpp -D USE_MPI
+	${CUDAC} -fopenmp $(MPI_FLAGS) -lmpi  ${LINK_FLAGS} bin/kmodes-mpi objc/power.o objc/$@.o objc/main_mpi.o ${BASE_OBJC}
+kmodes_openmp: kmodes power
+	${CC} -c src/$@.cpp -fopenmp $(COMPILE_FLAGS) objc/$@.o
+	${CC} -fopenmp ${LINK_FLAGS} bin/kmodes_openmp objc/power.o objc/$@.o ${OBJC}
 kmodes: create_objc_dir main io sequence
-	${CUDAC} ${COMPILE_FLAGS} objc/$@.o src/$@.cpp
-	${CUDAC} ${LINK_FLAGS} bin/kmodes objc/kmodes.o ${OBJC}
-kmodes_mpi:
-	${CUDAC} $(MPI_FLAGS) -lmpi -lmpi_cxx  ${COMPILE_FLAGS} objc/kmodes.o src/kmodes.cpp -D USE_MPI
-	${CUDAC} $(MPI_FLAGS) -lmpi -lmpi_cxx  ${COMPILE_FLAGS} objc/main_mpi.o src/main.cpp -D USE_MPI
-	${CUDAC} $(MPI_FLAGS) -lmpi -lmpi_cxx ${LINK_FLAGS} bin/kmodes-mpi  objc/kmodes_mpi.o objc/main_mpi.o ${BASE_OBJC}
+	${CC} -c ${COMPILE_FLAGS} objc/$@.o src/$@.cpp
+	${CC} ${LINK_FLAGS} bin/kmodes objc/kmodes.o ${OBJC}
+power:
+	${CC} -c src/$@.cpp -pthread ${COMPILE_FLAGS} objc/$@.o
+sequence_cuda:
+	${CUDAC} -c src/sequence.cpp ${CUDA_FLAGS} objc/$@.o
 sequence:
-	${CUDAC} ${COMPILE_FLAGS} objc/$@.o src/$@.cu
+	${CC} -c src/$@.cpp ${COMPILE_FLAGS} objc/$@.o
 io:
-	${CUDAC} ${COMPILE_FLAGS} objc/$@.o src/$@.cpp
+	${CC} -c ${COMPILE_FLAGS} objc/$@.o src/$@.cpp
 main:
-	${CUDAC} ${COMPILE_FLAGS} objc/$@.o src/$@.cpp
+	${CC} -c ${COMPILE_FLAGS} objc/$@.o src/$@.cpp
 create_objc_dir:
 	mkdir -p objc
 extract_input:

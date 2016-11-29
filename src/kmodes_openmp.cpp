@@ -1,6 +1,6 @@
 #include "global.h"
 #include "string.h"
-
+#include "power.h"
 
 inline unsigned int maskForMode(unsigned int x,unsigned int y,unsigned int z,unsigned int w ){
   unsigned int max = x > y ? x : y;
@@ -26,8 +26,7 @@ inline unsigned int maskForMode(unsigned int x,unsigned int y,unsigned int z,uns
 void kmeans() {
   printf("Execution sequential Kmeans\n");
   long delta; //Number of objects has diverged in current iteration
-  long nearest; //Nearest centroid
-  unsigned int distance,min_distance; //distance calculated by relation point-cluster
+
 
   unsigned int *tmp_centroidCount = NULL;
   label = (int*)calloc(data_size,sizeof(int));
@@ -43,31 +42,33 @@ void kmeans() {
 
 
   int pc = 0;
+  int nearests[data_size];
+  unsigned int min_distances[data_size];
+
+  power_init();
   do {
-
-    //Initialize tmp variables
-
     delta = 0;
     memset (tmp_centroidCount,0,clusters * BIT_SIZE_OF(sequence_t) * sizeof(unsigned int));
 
-    //For each point...
-
+    #pragma omp parallel for
     for(size_t i = 0;i < data_size;i++) {
-
-      min_distance = UINT_MAX;
-      nearest = -1;
+      // printf("pc = %d, i = %d\n", pc, i);
+      min_distances[i] = UINT_MAX;
+      nearests[i] = -1;
 
       for(size_t j = 0;j < clusters;j++) {
-        distance = dist_sequence(data[i],centroids[j]);
-        if(distance < min_distance) {
-          nearest = j;
-          min_distance = distance;
+        unsigned int distance = dist_sequence(data[i],centroids[j]);
+        // printf("Distance = %d\n", distance);
+        if(distance < min_distances[i]) {
+          nearests[i] = j;
+          min_distances[i] = distance;
         }
       }
 
-      if(label[i] != nearest) {
+      if(label[i] != nearests[i]) {
+        #pragma omp atomic
         delta++;
-        label[i] = nearest;
+        label[i] = nearests[i];
       }
 
       unsigned int *tmp_centroid = &tmp_centroidCount[label[i] * BIT_SIZE_OF(sequence_t)];
@@ -85,9 +86,9 @@ void kmeans() {
           tmp_centroid[(2 *SEQ_DIM_BITS_SIZE) + j]++;
         }
       }
-
     }
 
+    #pragma omp parallel for
     for(size_t i = 0;i < clusters;i++) {
       sequence_t seq = make_ulong3(0,0,0);
 
@@ -114,7 +115,6 @@ void kmeans() {
     printf ("%d - delta = %ld\n",pc,delta);
     pc++;
 
-  }
-
-  while(delta > 0);
+  } while(delta > 0);
+  power_end();
 }
