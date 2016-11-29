@@ -164,7 +164,7 @@ void read_data(char *file) {
 
       unsigned long int z =  strtoul(subbuff, NULL , 2);
 
-      sequence_t seq = make_ulong3 (x,y,z);
+      sequence_t seq = sequence_t { x,y,z };
       data[current_line] = seq;
       current_line++;
     } else if (current_line + 1 < data_size) {

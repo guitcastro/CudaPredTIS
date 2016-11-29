@@ -11,9 +11,8 @@ export LANG=en_US.UTF-8
 export LC_ALL=en_US
 CUDA_HOME?=/Developer/NVIDIA/CUDA-7.5
 
-LDFLAGS=-I${CUDA_HOME}/include
-COMPILE_FLAGS+=${LDFLAGS} ${COMMON_FLAGS}
-COMMON_FLAGS= -Wall -o
+COMPILE_FLAGS+=${COMMON_FLAGS}
+COMMON_FLAGS=-std=c++11 -Wall -o
 CUDA_FLAGS=--ptxas-options=-v -arch=sm_30 -o
 LINK_FLAGS+=-o
 MPI_FLAGS=-I$(shell mpicc --showme:incdirs) $(addprefix -L,$(shell mpicc --showme:libdirs)) -Xcompiler -fopenmp
@@ -87,4 +86,4 @@ clean:
 				rm -f $$input/$$base/positivos; \
 		done ; \
 	done
-	rm -f ${OBJC} objc/kmodes.o objc/kmodes_cuda.o bin/kmodes-cuda bin/kmodes bin/kmodes bin/kmodes-mpi
+	rm -f ${OBJC} objc/kmodes.o objc/kmodes_cuda.o bin/kmodes*

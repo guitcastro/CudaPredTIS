@@ -9,17 +9,19 @@
 #ifndef TD_sequence_h
 #define TD_sequence_h
 
-#include <cuda_runtime.h>
-
-typedef ulong3 sequence_t;
+#include <cstdint>
+typedef struct ulong3
+{
+  unsigned long int x, y, z;
+} sequence_t;
 
 #define SEQ_DIM_BITS_SIZE sizeof(unsigned long int) * 8
 
-int  dist_sequence(sequence_t seq1,sequence_t seq2);
 void print_sequence(sequence_t seq);
+int __attribute__((target(mic))) dist_sequence(sequence_t seq1,sequence_t seq2);
 
-sequence_t copy_sequence(sequence_t seq);
-sequence_t sum_sequence(sequence_t seq1,sequence_t seq2);
-sequence_t div_sequence(sequence_t seq1, unsigned long div);
+sequence_t __attribute__((target(mic))) copy_sequence(sequence_t seq);
+sequence_t __attribute__((target(mic))) sum_sequence(sequence_t seq1,sequence_t seq2);
+sequence_t __attribute__((target(mic))) div_sequence(sequence_t seq1, unsigned long div);
 
 #endif

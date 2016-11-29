@@ -1,6 +1,6 @@
 #include "global.h"
 #include "string.h"
-
+#include <limits.h>
 
 inline unsigned int maskForMode(unsigned int x,unsigned int y,unsigned int z,unsigned int w ){
   unsigned int max = x > y ? x : y;
@@ -89,7 +89,7 @@ void kmeans() {
     }
 
     for(size_t i = 0;i < clusters;i++) {
-      sequence_t seq = make_ulong3(0,0,0);
+      sequence_t seq = sequence_t { 0,0,0 };
 
       unsigned int *tmp_centroid = &tmp_centroidCount[i* BIT_SIZE_OF(sequence_t)];
 
