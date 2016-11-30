@@ -1,5 +1,7 @@
 #include "global.h"
-#include "string.h"
+#include "kmodes.h"
+#include <stdio.h>
+#include <string.h>
 #include <limits.h>
 
 inline unsigned int maskForMode(unsigned int x,unsigned int y,unsigned int z,unsigned int w ){
@@ -23,16 +25,17 @@ inline unsigned int maskForMode(unsigned int x,unsigned int y,unsigned int z,uns
   return mask;
 }
 
-void kmeans() {
+kmodes_result_t kmodes(kmodes_input_t input) {
   printf("Execution sequential Kmeans\n");
   long delta; //Number of objects has diverged in current iteration
   long nearest; //Nearest centroid
-  unsigned int distance,min_distance; //distance calculated by relation point-cluster
-
-  unsigned int *tmp_centroidCount = NULL;
-  label = (int*)calloc(data_size,sizeof(int));
-  centroids = (sequence_t*)calloc(clusters,sizeof(sequence_t));
-  tmp_centroidCount = (unsigned int*)malloc(clusters * BIT_SIZE_OF(sequence_t) * sizeof(unsigned int));
+  size_t distance,min_distance; //distance calculated by relation point-cluster
+  size_t clusters = input.number_of_clusters;
+  size_t data_size = input.data_size;
+  sequence_t *data = input.data;
+  int* label = (int*)calloc(data_size, sizeof(int));
+  sequence_t *centroids = (sequence_t*)calloc(clusters, sizeof(sequence_t));
+  unsigned int *tmp_centroidCount = (unsigned int*)malloc(clusters * BIT_SIZE_OF(sequence_t) * sizeof(unsigned int));
 
   memset (label,-1,data_size * sizeof(int));
 
@@ -89,7 +92,7 @@ void kmeans() {
     }
 
     for(size_t i = 0;i < clusters;i++) {
-      sequence_t seq = sequence_t { 0,0,0 };
+      sequence_t seq = { 0,0,0 };
 
       unsigned int *tmp_centroid = &tmp_centroidCount[i* BIT_SIZE_OF(sequence_t)];
 
@@ -115,6 +118,11 @@ void kmeans() {
     pc++;
 
   }
-
   while(delta > 0);
+
+  kmodes_result_t result = {
+    label,
+    centroids
+  };
+  return result;
 }

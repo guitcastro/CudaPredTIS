@@ -12,13 +12,13 @@ export LC_ALL=en_US
 CUDA_HOME?=/Developer/NVIDIA/CUDA-7.5
 
 COMPILE_FLAGS+=${COMMON_FLAGS}
-COMMON_FLAGS=-std=c++11 -Wall -o
+COMMON_FLAGS=-std=c11 -Wall -o
 CUDA_FLAGS=--ptxas-options=-v -arch=sm_30 -o
 MPI_FLAGS=-I$(shell mpicc --showme:incdirs) $(addprefix -L,$(shell mpicc --showme:libdirs)) -Xcompiler -fopenmp
 
 CUDAC=${CUDA_HOME}/bin/nvcc
-##/opt/intel/bin/icc
 CC=/opt/intel/bin/icc
+# CC=gcc
 BASES = athaliana celegans Rattusnovergicus Musmusculus HomoSapiens gallus Drosophila
 INPUTS = input input_cuda input_mpi
 BASE_OBJC = objc/sequence.o objc/io.o
@@ -30,25 +30,25 @@ kmodes_cuda: kmodes sequence_cuda
 	${CUDAC} -c ${CUDA_FLAGS}  objc/$@.o  src/$@.cu --shared
 	${CUDAC} ${CUDA_FLAGS} bin/kmodes-cuda objc/$@.o objc/sequence_cuda.o objc/io.o objc/main.o
 kmodes_mpi: kmodes power
-	${CUDAC} -fopenmp $(MPI_FLAGS) -lmpi  ${COMPILE_FLAGS} objc/$@.o src/$@.cpp
-	${CUDAC} -fopenmp $(MPI_FLAGS) -lmpi  ${COMPILE_FLAGS} objc/main_mpi.o src/main.cpp -D USE_MPI
+	${CUDAC} -fopenmp $(MPI_FLAGS) -lmpi  ${COMPILE_FLAGS} objc/$@.o src/$@.c
+	${CUDAC} -fopenmp $(MPI_FLAGS) -lmpi  ${COMPILE_FLAGS} objc/main_mpi.o src/main.c -D USE_MPI
 	${CUDAC} -fopenmp $(MPI_FLAGS) -lmpi  ${LINK_FLAGS} bin/kmodes-mpi objc/power.o objc/$@.o objc/main_mpi.o ${BASE_OBJC}
 kmodes_openmp: kmodes power
-	${CC} -c src/$@.cpp -fopenmp $(COMPILE_FLAGS) objc/$@.o
+	${CC} -c src/$@.c -fopenmp $(COMPILE_FLAGS) objc/$@.o
 	${CC} -fopenmp objc/power.o objc/$@.o ${OBJC} -o bin/kmodes-openmp
 kmodes: create_objc_dir main io sequence
-	${CC} -c src/$@.cpp ${COMPILE_FLAGS} objc/$@.o
+	${CC} -c src/$@.c ${COMPILE_FLAGS} objc/$@.o
 	${CC} -o bin/kmodes objc/kmodes.o ${OBJC}
 power:
-	${CC} -c src/$@.cpp -pthread ${COMPILE_FLAGS} objc/$@.o
+	${CC} -c src/$@.c -pthread ${COMPILE_FLAGS} objc/$@.o
 sequence_cuda:
-	${CUDAC} -c src/sequence.cpp ${CUDA_FLAGS} objc/$@.o
+	${CUDAC} -c src/sequence.c ${CUDA_FLAGS} objc/$@.o
 sequence:
-	${CC} -c src/$@.cpp ${COMPILE_FLAGS} objc/$@.o
+	${CC} -c src/$@.c ${COMPILE_FLAGS} objc/$@.o
 io:
-	${CC} -c ${COMPILE_FLAGS} objc/$@.o src/$@.cpp
+	${CC} -c src/$@.c ${COMPILE_FLAGS} objc/$@.o
 main:
-	${CC} -c ${COMPILE_FLAGS} objc/$@.o src/$@.cpp
+	${CC} -c src/$@.c ${COMPILE_FLAGS} objc/$@.o
 create_objc_dir:
 	mkdir -p objc
 extract_input:

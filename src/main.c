@@ -3,13 +3,6 @@
 #include "global.h"
 #include "io.h"
 
-extern void kmeans(void);
-
-sequence_t *data;
-size_t  data_size;
-size_t clusters;
-sequence_t *centroids;
-int *label;
 
 int mpi_rank;
 int mpi_size;
@@ -28,12 +21,16 @@ void execute(char *filename){
   #endif
   //Execute processing
 
-  read_data(filename);
+  kmodes_input_t input = read_data(filename);
+  kmodes_result_t result = kmodes(input);
 
-  kmeans();
   char resultFile[255];
-  sprintf(resultFile,"%s.out",filename);
-  write_nearest_objects(resultFile);
+  sprintf(resultFile, "%s.out", filename);
+  write_nearest_objects(resultFile, input, result);
+
+  free(input.data);
+  free(result.labels);
+  free(result.centroids);
 
   #if USE_MPI
   if(mpi_rank == 0) {
@@ -69,13 +66,13 @@ int main(int argc,char **argv) {
   }
 
   strcpy(filename, argv[1]);
-  clusters = atoi(argv[2]);
+  size_t number_of_clusters = atoi(argv[2]);
   if (argc == 4){
     for (int i = 1; i < 11; i++ ){
       sprintf(filename,"%s%d",argv[1], i);
 
       if (i == 10){
-        clusters = atoi(argv[3]);
+        number_of_clusters = atoi(argv[3]);
       }
 
       execute(filename);

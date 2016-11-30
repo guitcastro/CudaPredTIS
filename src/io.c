@@ -1,4 +1,9 @@
+#define _GNU_SOURCE
+
 #include "io.h"
+#include "sequence.h"
+#include <stdio.h>
+#include <string.h>
 #include <assert.h>
 
 #if BINARY_OUT
@@ -116,7 +121,7 @@ void printBits2(unsigned long int * ptr)
 
 }
 
-void read_data(char *file) {
+kmodes_input_t read_data(const char *file) {
   size_t line_size = 255;
 
   FILE *in = fopen(file,"r");
@@ -130,7 +135,7 @@ void read_data(char *file) {
   }
 
   //Count lines
-  data_size = 0;
+  size_t data_size = 0;
   rewind(in);
 
   while(!feof(in)) {
@@ -144,7 +149,7 @@ void read_data(char *file) {
   printf("Number of lines = %lu\n", data_size);
 
   //Read objects
-  data = (sequence_t*)calloc(data_size,sizeof(sequence_t));
+  sequence_t *data = (sequence_t*)calloc(data_size,sizeof(sequence_t));
   rewind(in);
 
   size_t current_line = 0;
@@ -164,7 +169,7 @@ void read_data(char *file) {
 
       unsigned long int z =  strtoul(subbuff, NULL , 2);
 
-      sequence_t seq = sequence_t { x,y,z };
+      sequence_t seq = {  x, y , z };
       data[current_line] = seq;
       current_line++;
     } else if (current_line + 1 < data_size) {
@@ -175,9 +180,11 @@ void read_data(char *file) {
   printf("Finish read input file\n");
 
   fclose(in);
+  kmodes_input_t input = { data, data_size, 0 };
+  return input;
 }
 
-void write_nearest_objects(char *file) {
+void write_nearest_objects(const char *file, kmodes_input_t input, kmodes_result_t result) {
 
   #if USE_MPI
   if (mpi_rank != 0) {
@@ -196,17 +203,17 @@ void write_nearest_objects(char *file) {
   }
 
   //For each centroid
-  for(size_t i = 0; i < clusters;i++) {
+  for(size_t i = 0; i < input.number_of_clusters; i++) {
     nearest = -1;
     min_distance = FLT_MAX;
 
     //Find the nearest object
-    for(size_t j = 0;j < data_size;j++) {
-      if(label[j] != (int)i) {
+    for(size_t j = 0;j < input.data_size; j++) {
+      if(result.labels[j] != (int)i) {
         continue;
       }
 
-      distance = dist_sequence (data[j],centroids[i]);
+      distance = dist_sequence (input.data[j], result.centroids[i]);
 
       if(distance < min_distance) {
         nearest = j;
@@ -215,14 +222,14 @@ void write_nearest_objects(char *file) {
     }
 
     if(nearest == -1) {
-      nearest = i * data_size/clusters;
+      nearest = i * input.data_size / input.number_of_clusters;
     }
 
-    printBits(out,&data[nearest].x);
+    printBits(out,&input.data[nearest].x);
     fprintf(out," ");
-    printBits(out,&data[nearest].y);
+    printBits(out,&input.data[nearest].y);
     fprintf(out," ");
-    printSpecialCase(out,&data[nearest].z);
+    printSpecialCase(out,&input.data[nearest].z);
     fprintf(out," ");
     fprintf(out,"\n");
   }

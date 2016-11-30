@@ -9,7 +9,16 @@
 #ifndef TD_sequence_h
 #define TD_sequence_h
 
-#include <cstdint>
+#include <stdint.h>
+
+#ifdef __INTEL_COMPILER
+  #define __OFFLOAD__MODIFIER__ __attribute__((target(mic)))
+#elif __CUDACC__
+  #define __host__ __device__
+#else
+  #define __OFFLOAD__MODIFIER__
+#endif
+
 typedef struct ulong3
 {
   unsigned long int x, y, z;
@@ -18,10 +27,14 @@ typedef struct ulong3
 #define SEQ_DIM_BITS_SIZE sizeof(unsigned long int) * 8
 
 void print_sequence(sequence_t seq);
-int __attribute__((target(mic))) dist_sequence(sequence_t seq1,sequence_t seq2);
 
-sequence_t __attribute__((target(mic))) copy_sequence(sequence_t seq);
-sequence_t __attribute__((target(mic))) sum_sequence(sequence_t seq1,sequence_t seq2);
-sequence_t __attribute__((target(mic))) div_sequence(sequence_t seq1, unsigned long div);
+__OFFLOAD__MODIFIER__ int dist_sequence(sequence_t seq1,sequence_t seq2);
+
+__OFFLOAD__MODIFIER__ sequence_t copy_sequence(sequence_t seq);
+
+__OFFLOAD__MODIFIER__ sequence_t sum_sequence(sequence_t seq1,sequence_t seq2);
+
+__OFFLOAD__MODIFIER__ sequence_t div_sequence(sequence_t seq1, unsigned long div);
+
 
 #endif

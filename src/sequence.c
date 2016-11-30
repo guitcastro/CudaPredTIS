@@ -9,12 +9,7 @@
 #include <stdio.h>
 #include "sequence.h"
 
-
-#ifdef __CUDACC__
-__host__
-__device__
-#endif
-void print_binary(void const * const ptr)
+__OFFLOAD__MODIFIER__ void print_binary(void const * const ptr)
 {
   unsigned char *b = (unsigned char*) ptr;
   unsigned char byte;
@@ -32,40 +27,32 @@ void print_binary(void const * const ptr)
   }
 }
 
-#ifdef __CUDACC__
-__host__
-__device__
-#endif
-void print_sequence(sequence_t seq)
+__OFFLOAD__MODIFIER__ void print_sequence(sequence_t seq)
 {
   print_binary(&seq.x);
   print_binary(&seq.y);
   print_binary(&seq.z);
 }
 
-#ifdef __CUDACC__
-__host__
-__device__
-#endif
-sequence_t copy_sequence(sequence_t seq){
-  return sequence_t { seq.x,seq.y,seq.z };
-}
-
-#ifdef __CUDACC__
-__host__
-__device__
-#endif
-int dist_sequence(sequence_t seq1,sequence_t seq2){
+__OFFLOAD__MODIFIER__ int dist_sequence(sequence_t seq1,sequence_t seq2){
   unsigned long int xDiff = seq1.x ^ seq2.x;
   unsigned long int yDiff = seq1.y ^ seq2.y;
   unsigned long int zDiff = seq1.z ^ seq2.z;
   return __builtin_popcountl(xDiff) + __builtin_popcountl(yDiff) + __builtin_popcountl(zDiff);
 }
 
-sequence_t sum_sequence(sequence_t seq1,sequence_t seq2){
-  return sequence_t { seq1.x + seq2.x,seq1.y + seq2.y,seq1.z + seq2.z };
+__OFFLOAD__MODIFIER__ sequence_t copy_sequence(sequence_t seq) {
+  sequence_t sequence = { seq.x,seq.y,seq.z };
+  return sequence;
+}
+
+
+sequence_t sum_sequence(sequence_t seq1,sequence_t seq2) {
+  sequence_t sequence = { seq1.x + seq2.x,seq1.y + seq2.y,seq1.z + seq2.z };
+  return sequence;
 }
 
 sequence_t div_sequence(sequence_t seq1, unsigned long div){
-  return sequence_t { seq1.x / div , seq1.y / div, seq1.z / div };
+  sequence_t sequence = { seq1.x / div , seq1.y / div, seq1.z / div };
+  return sequence;
 }
