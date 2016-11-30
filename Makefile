@@ -17,7 +17,7 @@ CUDA_FLAGS=--ptxas-options=-v -arch=sm_30 -o
 MPI_FLAGS=-I$(shell mpicc --showme:incdirs) $(addprefix -L,$(shell mpicc --showme:libdirs)) -Xcompiler -fopenmp
 
 CUDAC=${CUDA_HOME}/bin/nvcc
-#CC=/opt/intel/bin/icc
+ICC=/opt/intel/bin/icc
 CC=gcc
 BASES = athaliana celegans Rattusnovergicus Musmusculus HomoSapiens gallus Drosophila
 INPUTS = input input_cuda input_mpi
@@ -34,8 +34,9 @@ kmodes_mpi: kmodes power
 	${CUDAC} -fopenmp $(MPI_FLAGS) -lmpi  ${COMPILE_FLAGS} objc/main_mpi.o src/main.c -D USE_MPI
 	${CUDAC} -fopenmp $(MPI_FLAGS) -lmpi  ${LINK_FLAGS} bin/kmodes-mpi objc/power.o objc/$@.o objc/main_mpi.o ${BASE_OBJC}
 kmodes_openmp: kmodes power
-	${CC} -c src/$@.c -fopenmp $(COMPILE_FLAGS) objc/$@.o
-	${CC} -fopenmp objc/power.o objc/$@.o ${OBJC} -o bin/kmodes-openmp
+	${ICC} -c src/$@.c -qopt-report -fopenmp $(COMPILE_FLAGS) objc/$@.o
+	${ICC} -c src/sequence.c $(COMPILE_FLAGS) objc/sequence_icc.o
+	${ICC} -fopenmp objc/power.o objc/$@.o objc/sequence_icc.o objc/io.o objc/main.o -o bin/kmodes-openmp
 kmodes: create_objc_dir main io sequence
 	${CC} -c src/$@.c ${COMPILE_FLAGS} objc/$@.o
 	${CC} -o bin/kmodes objc/kmodes.o ${OBJC}

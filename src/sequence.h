@@ -26,7 +26,7 @@ typedef struct ulong3
 
 #define SEQ_DIM_BITS_SIZE sizeof(unsigned long int) * 8
 
-void print_sequence(sequence_t seq);
+__OFFLOAD__MODIFIER__ void print_sequence(sequence_t seq);
 
 __OFFLOAD__MODIFIER__ int dist_sequence(sequence_t seq1,sequence_t seq2);
 

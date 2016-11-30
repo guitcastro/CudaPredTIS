@@ -2,6 +2,8 @@
 #include "string.h"
 #include "power.h"
 #include "limits.h"
+#include "kmodes.h"
+#include "omp.h"
 
 inline unsigned int __attribute__((target(mic))) maskForMode(unsigned int x,unsigned int y,unsigned int z,unsigned int w){
   unsigned int max = x > y ? x : y;
@@ -24,23 +26,29 @@ inline unsigned int __attribute__((target(mic))) maskForMode(unsigned int x,unsi
   return mask;
 }
 
-void kmeans() {
-  power_init();
-  #pragma offload target(mic) in(data:length(data_size)) out(label:length(data_size)) inout(centroids:length(clusters))
-  {
-    printf("Execution sequential Kmeans\n");
-    long delta; //Number of objects has diverged in current iteration
+kmodes_result_t kmodes(kmodes_input_t input) {
+  // power_init();
+  sequence_t *data = input.data;
+  size_t data_size = input.data_size;
+  size_t clusters = input.number_of_clusters;
+  // printf("Threads count = %d\n", thread_count);
+  printf("Execution XeonPhi Kmodes, number of clusters %zu\n", clusters);
+  int *label = (int*)calloc(data_size,sizeof(int));
+  sequence_t *centroids = (sequence_t*)calloc(clusters, sizeof(sequence_t));
 
+  #pragma offload target(mic:0)  in(data:length(data_size)) out(centroids:length(clusters)) out(label:length(data_size))
+  {
+
+    long delta; //Number of objects has diverged in current iteration
     unsigned int *tmp_centroidCount = NULL;
-    label = (int*)calloc(data_size,sizeof(int));
-    centroids = (sequence_t*)calloc(clusters,sizeof(sequence_t));
     tmp_centroidCount = (unsigned int*)malloc(clusters * BIT_SIZE_OF(sequence_t) * sizeof(unsigned int));
 
     memset (label,-1,data_size * sizeof(int));
 
     for(size_t i = 0;i < clusters;i++) {
       size_t h = i * data_size / clusters;
-      centroids[i] = copy_sequence(data[h]);
+      sequence_t sequence = copy_sequence(data[h]);
+      centroids[i] = sequence;
     }
 
     int pc = 0;
@@ -89,9 +97,8 @@ void kmeans() {
         }
       }
 
-      #pragma omp parallel for
       for(size_t i = 0;i < clusters;i++) {
-        sequence_t seq = sequence_t { 0,0,0 };
+        sequence_t seq = { 0,0,0 };
 
         unsigned int *tmp_centroid = &tmp_centroidCount[i* BIT_SIZE_OF(sequence_t)];
 
@@ -118,6 +125,10 @@ void kmeans() {
 
     } while(delta > 0);
   }
-  power_end();
 
+  kmodes_result_t result = {
+    label,
+    centroids,
+  };
+  return result;
 }

@@ -12,7 +12,7 @@
  * /sys/class/micras/power
  */
 static const char *micras_power_file = "micsmc -f | grep 'Total Power: ............. ' | awk '{print $4}'";
-static FILE *micras_power = NULL;
+static FILE *micras_power;
 
 
 static const long time_stamp = 50000000L;
