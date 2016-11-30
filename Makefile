@@ -4,21 +4,21 @@ ifeq ($(UNAME_S),Linux)
 	CUDA_HOME=/home/guilherme.castro
     endif
     ifeq ($(UNAME_S),Darwin)
-    	COMPILE_FLAGS=-ccbin=clang-omp++ -Xcompiler -fopenmp
-    	LINK_FLAGS=-ccbin=clang-omp++ -Xcompiler -fopenmp
+        #COMPILE_FLAGS=-ccbin=clang-omp++ -Xcompiler -fopenmp
+        #LINK_FLAGS=-ccbin=clang-omp++ -Xcompiler -fopenmp
 endif
 export LANG=en_US.UTF-8
 export LC_ALL=en_US
 CUDA_HOME?=/Developer/NVIDIA/CUDA-7.5
 
 COMPILE_FLAGS+=${COMMON_FLAGS}
-COMMON_FLAGS=-std=c11 -Wall -o
+COMMON_FLAGS=-g -std=c11 -Wall -o
 CUDA_FLAGS=--ptxas-options=-v -arch=sm_30 -o
 MPI_FLAGS=-I$(shell mpicc --showme:incdirs) $(addprefix -L,$(shell mpicc --showme:libdirs)) -Xcompiler -fopenmp
 
 CUDAC=${CUDA_HOME}/bin/nvcc
-CC=/opt/intel/bin/icc
-# CC=gcc
+#CC=/opt/intel/bin/icc
+CC=gcc
 BASES = athaliana celegans Rattusnovergicus Musmusculus HomoSapiens gallus Drosophila
 INPUTS = input input_cuda input_mpi
 BASE_OBJC = objc/sequence.o objc/io.o

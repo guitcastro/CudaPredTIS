@@ -14,3 +14,4 @@ bin/kmodes*
 *.xcworkspacedata
 *.xcuserstate
 *.gch
+cmake-build-debug/

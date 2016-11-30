@@ -1,5 +1,6 @@
 #include <stdlib.h>
 #include <stdio.h>
+#include <string.h>
 #include "global.h"
 #include "io.h"
 
@@ -7,7 +8,7 @@
 int mpi_rank;
 int mpi_size;
 
-void execute(char *filename){
+void execute(char *filename, size_t number_of_clusters) {
 
   #if USE_MPI
   FILE *log_file;
@@ -22,6 +23,7 @@ void execute(char *filename){
   //Execute processing
 
   kmodes_input_t input = read_data(filename);
+  input.number_of_clusters = number_of_clusters;
   kmodes_result_t result = kmodes(input);
 
   char resultFile[255];
@@ -75,13 +77,13 @@ int main(int argc,char **argv) {
         number_of_clusters = atoi(argv[3]);
       }
 
-      execute(filename);
+      execute(filename, number_of_clusters);
       #if USE_MPI
       MPI_Barrier(MPI_COMM_WORLD);
       #endif
     } // end for
   } else {
-    execute(filename);
+    execute(filename, number_of_clusters);
   }
   #if USE_MPI
   MPI_Finalize();

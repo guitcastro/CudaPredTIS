@@ -4,7 +4,7 @@
 #include <string.h>
 #include <limits.h>
 
-inline unsigned int maskForMode(unsigned int x,unsigned int y,unsigned int z,unsigned int w ){
+unsigned int maskForMode(unsigned int x,unsigned int y,unsigned int z,unsigned int w ){
   unsigned int max = x > y ? x : y;
   max = z > max ? z : max;
   max = w > max ? w : max;
