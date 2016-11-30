@@ -14,7 +14,6 @@ CUDA_HOME?=/Developer/NVIDIA/CUDA-7.5
 COMPILE_FLAGS+=${COMMON_FLAGS}
 COMMON_FLAGS=-std=c++11 -Wall -o
 CUDA_FLAGS=--ptxas-options=-v -arch=sm_30 -o
-LINK_FLAGS+=-o
 MPI_FLAGS=-I$(shell mpicc --showme:incdirs) $(addprefix -L,$(shell mpicc --showme:libdirs)) -Xcompiler -fopenmp
 
 CUDAC=${CUDA_HOME}/bin/nvcc
@@ -24,7 +23,7 @@ BASES = athaliana celegans Rattusnovergicus Musmusculus HomoSapiens gallus Droso
 INPUTS = input input_cuda input_mpi
 BASE_OBJC = objc/sequence.o objc/io.o
 OBJC = objc/main.o ${BASE_OBJC}
-
+# sour/opt/intel/bin/compilervars.sh intel64
 all: kmodes kmodes_cuda kmodes_mpi kmodes_openmp
 
 kmodes_cuda: kmodes sequence_cuda
@@ -36,10 +35,10 @@ kmodes_mpi: kmodes power
 	${CUDAC} -fopenmp $(MPI_FLAGS) -lmpi  ${LINK_FLAGS} bin/kmodes-mpi objc/power.o objc/$@.o objc/main_mpi.o ${BASE_OBJC}
 kmodes_openmp: kmodes power
 	${CC} -c src/$@.cpp -fopenmp $(COMPILE_FLAGS) objc/$@.o
-	${CC} -fopenmp ${LINK_FLAGS} bin/kmodes_openmp objc/power.o objc/$@.o ${OBJC}
+	${CC} -fopenmp objc/power.o objc/$@.o ${OBJC} -o bin/kmodes-openmp
 kmodes: create_objc_dir main io sequence
-	${CC} -c ${COMPILE_FLAGS} objc/$@.o src/$@.cpp
-	${CC} ${LINK_FLAGS} bin/kmodes objc/kmodes.o ${OBJC}
+	${CC} -c src/$@.cpp ${COMPILE_FLAGS} objc/$@.o
+	${CC} -o bin/kmodes objc/kmodes.o ${OBJC}
 power:
 	${CC} -c src/$@.cpp -pthread ${COMPILE_FLAGS} objc/$@.o
 sequence_cuda:

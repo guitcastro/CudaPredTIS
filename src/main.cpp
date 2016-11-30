@@ -73,7 +73,7 @@ int main(int argc,char **argv) {
   if (argc == 4){
     for (int i = 1; i < 11; i++ ){
       sprintf(filename,"%s%d",argv[1], i);
-      
+
       if (i == 10){
         clusters = atoi(argv[3]);
       }
