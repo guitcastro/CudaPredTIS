@@ -3,7 +3,10 @@
  *
  * power.c - Power utility library for Intel Xeon Phi
  */
-
+#define _BSD_SOURCE
+#define _XOPEN_SOURCE
+#include <time.h>
+#include <unistd.h>
 #include <assert.h>
 #include <stdio.h>
 #include <pthread.h>
@@ -34,6 +37,7 @@ static float power_get(void)
 	float avarage;
 
 	error = fscanf(micras_power, "%f", &avarage);
+
 	((void)error);
 
 	fclose(micras_power);
@@ -46,6 +50,7 @@ static float power_get(void)
  */
 static void *power_listen(void *unused)
 {
+
 	struct timespec ts;
 
 	((void)unused);
@@ -71,7 +76,6 @@ static void *power_listen(void *unused)
 void power_init(void)
 {
 	live = 1;
-
 	pthread_create(&tid, NULL, power_listen, NULL);
 }
 

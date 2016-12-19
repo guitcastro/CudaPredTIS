@@ -1,6 +1,10 @@
 #include "global.h"
 #include "sequence.h"
 
+extern "C" {
+  #include "kmodes.h"
+}
+
 #include <string.h>
 #include <cuda.h>
 
@@ -133,14 +137,19 @@ __device__ unsigned int maskForMode(unsigned int x,
         used_db/1024.0/1024.0, free_db/1024.0/1024.0, total_db/1024.0/1024.0);
       }
 
-
-      void kmeans() {
+      extern "C"
+      kmodes_result_t kmodes(kmodes_input_t input) {
+        printf("%s\n", "Execution cuda kmodes");
         //checkCudaMemory();
 
         unsigned int delta=0; //Number of objects has diverged in current iteration
 
-        label = (int*)calloc(data_size,sizeof(int));
-        centroids = (sequence_t*)calloc(clusters,sizeof(sequence_t));
+        size_t clusters = input.number_of_clusters;
+        size_t data_size = input.data_size;
+        sequence_t *data = input.data;
+        int* label = (int*)calloc(data_size, sizeof(int));
+        sequence_t *centroids = (sequence_t*)calloc(clusters, sizeof(sequence_t));
+
 
         // cuda variables
         sequence_t * cuda_data = NULL;
@@ -217,4 +226,10 @@ __device__ unsigned int maskForMode(unsigned int x,
             checkCuda(cudaFree(cuda_membership));
             checkCuda(cudaFree(cuda_tmp_centroidCount));
             checkCuda(cudaDeviceReset());
+
+            kmodes_result_t result = {
+              label,
+              centroids
+            };
+            return result;
           }

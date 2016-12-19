@@ -1,5 +1,8 @@
 #include "global.h"
 #include "string.h"
+#include "kmodes.h"
+
+#include <limits.h>
 #include <omp.h>
 #include <mpi.h>
 
@@ -67,12 +70,17 @@ inline void logAddSquenceToGroup(int sequenceIndex, int cluster, const unsigned 
 }
 
 
-void kmeans() {
+kmodes_result_t kmodes(kmodes_input_t input) {
   printf("Starting kmeans mpi\n");
+
+  size_t clusters = input.number_of_clusters;
+  size_t data_size = input.data_size;
+  sequence_t *data = input.data;
+  int* label = (int*)calloc(data_size, sizeof(int));
+  sequence_t *centroids = (sequence_t*)calloc(clusters, sizeof(sequence_t));
+
   unsigned int *tmp_centroidCount = (unsigned int*)malloc(clusters * BIT_SIZE_OF(sequence_t) * sizeof(unsigned int));
   unsigned int *recv_tmp_centroidCount = (unsigned int*)malloc(clusters * BIT_SIZE_OF(sequence_t) * sizeof(unsigned int));
-  label = (int*)calloc(data_size,sizeof(int));
-  centroids = (sequence_t*)calloc(clusters,sizeof(sequence_t));
 
   memset (label,-1,data_size * sizeof(int));
 
@@ -172,7 +180,7 @@ void kmeans() {
 
 
     for(size_t i = mpi_rank;i < clusters;i+=mpi_size) {
-      sequence_t seq = make_ulong3(0,0,0);
+      sequence_t seq = {0,0,0};
 
       unsigned int *tmp_centroid = &recv_tmp_centroidCount[i* BIT_SIZE_OF(sequence_t)];
 
@@ -209,4 +217,9 @@ void kmeans() {
     pc++;
 
   } while(delta > 0);
+  kmodes_result_t result = {
+    label,
+    centroids,
+  };
+  return result;
 }

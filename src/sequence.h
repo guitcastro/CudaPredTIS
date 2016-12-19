@@ -12,17 +12,24 @@
 #include <stdint.h>
 
 #ifdef __INTEL_COMPILER
+  typedef struct ulong3
+  {
+    unsigned long int x, y, z;
+  } sequence_t;
   #define __OFFLOAD__MODIFIER__ __attribute__((target(mic)))
 #elif __CUDACC__
-  #define __host__ __device__
+  #include <cuda_runtime.h>
+  typedef struct ulong3 sequence_t;
+  #define __OFFLOAD__MODIFIER__ __host__ __device__
 #else
+  typedef struct ulong3
+  {
+    unsigned long int x, y, z;
+  } sequence_t;
   #define __OFFLOAD__MODIFIER__
 #endif
 
-typedef struct ulong3
-{
-  unsigned long int x, y, z;
-} sequence_t;
+
 
 #define SEQ_DIM_BITS_SIZE sizeof(unsigned long int) * 8
 

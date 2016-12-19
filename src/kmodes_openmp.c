@@ -27,7 +27,7 @@ inline unsigned int __attribute__((target(mic))) maskForMode(unsigned int x,unsi
 }
 
 kmodes_result_t kmodes(kmodes_input_t input) {
-  // power_init();
+  power_init();
   sequence_t *data = input.data;
   size_t data_size = input.data_size;
   size_t clusters = input.number_of_clusters;
@@ -59,7 +59,7 @@ kmodes_result_t kmodes(kmodes_input_t input) {
       delta = 0;
       memset (tmp_centroidCount,0,clusters * BIT_SIZE_OF(sequence_t) * sizeof(unsigned int));
 
-      #pragma omp parallel for
+      //#pragma omp parallel for
       for(size_t i = 0;i < data_size;i++) {
         // printf("pc = %d, i = %d\n", pc, i);
         min_distances[i] = UINT_MAX;
@@ -80,6 +80,10 @@ kmodes_result_t kmodes(kmodes_input_t input) {
           label[i] = nearests[i];
         }
 
+
+      }
+
+      for(size_t i = 0;i < data_size;i++) {
         unsigned int *tmp_centroid = &tmp_centroidCount[label[i] * BIT_SIZE_OF(sequence_t)];
         for (size_t j=0;j<SEQ_DIM_BITS_SIZE;j++){
           // bits tmp_centroid[0] is less significative bit from sequence_t
@@ -122,13 +126,12 @@ kmodes_result_t kmodes(kmodes_input_t input) {
       }
       printf ("%d - delta = %ld\n",pc,delta);
       pc++;
-
     } while(delta > 0);
   }
-
   kmodes_result_t result = {
     label,
     centroids,
   };
+  power_end();
   return result;
 }

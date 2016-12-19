@@ -14,7 +14,7 @@ CUDA_HOME?=/Developer/NVIDIA/CUDA-7.5
 COMPILE_FLAGS+=${COMMON_FLAGS}
 COMMON_FLAGS=-g -std=c11 -Wall -o
 CUDA_FLAGS=--ptxas-options=-v -arch=sm_30 -o
-MPI_FLAGS=-I$(shell mpicc --showme:incdirs) $(addprefix -L,$(shell mpicc --showme:libdirs)) -Xcompiler -fopenmp
+MPI_FLAGS=-I$(shell mpicc --showme:incdirs) $(addprefix -L,$(shell mpicc --showme:libdirs)) -fopenmp
 
 CUDAC=${CUDA_HOME}/bin/nvcc
 ICC=/opt/intel/bin/icc
@@ -30,9 +30,9 @@ kmodes_cuda: kmodes sequence_cuda
 	${CUDAC} -c ${CUDA_FLAGS}  objc/$@.o  src/$@.cu --shared
 	${CUDAC} ${CUDA_FLAGS} bin/kmodes-cuda objc/$@.o objc/sequence_cuda.o objc/io.o objc/main.o
 kmodes_mpi: kmodes power
-	${CUDAC} -fopenmp $(MPI_FLAGS) -lmpi  ${COMPILE_FLAGS} objc/$@.o src/$@.c
-	${CUDAC} -fopenmp $(MPI_FLAGS) -lmpi  ${COMPILE_FLAGS} objc/main_mpi.o src/main.c -D USE_MPI
-	${CUDAC} -fopenmp $(MPI_FLAGS) -lmpi  ${LINK_FLAGS} bin/kmodes-mpi objc/power.o objc/$@.o objc/main_mpi.o ${BASE_OBJC}
+	${CC} -c -fopenmp $(MPI_FLAGS) -lmpi  ${COMPILE_FLAGS} objc/$@.o src/$@.c
+	${CC} -c -fopenmp $(MPI_FLAGS) -lmpi  ${COMPILE_FLAGS} objc/main_mpi.o src/main.c -D USE_MPI
+	${CC} -c -fopenmp $(MPI_FLAGS) -lmpi  ${LINK_FLAGS} -o bin/kmodes-mpi objc/power.o objc/$@.o objc/main_mpi.o ${BASE_OBJC}
 kmodes_openmp: kmodes power
 	${ICC} -c src/$@.c -qopt-report -fopenmp $(COMPILE_FLAGS) objc/$@.o
 	${ICC} -c src/sequence.c $(COMPILE_FLAGS) objc/sequence_icc.o

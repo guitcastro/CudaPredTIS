@@ -12,7 +12,7 @@ import resultHandle
 PROFILER = ''
 workingDir = sys.argv[4]
 for i in range (1,11):
-    commandLine = '(time ' + PROFILER + './kmodes_openmp ' + \
+    commandLine = '(time ' + PROFILER + './kmodes-openmp ' + \
                    workingDir + 'cluster' + str(i) + \
                    ' ' + sys.argv[2] + \
                    ') &> ' + sys.argv[4] +  'log' + str(i) + '.txt'
