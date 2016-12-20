@@ -6,7 +6,7 @@
 #include <omp.h>
 #include <mpi.h>
 
-inline unsigned int maskForMode(unsigned int x,unsigned int y,unsigned int z,unsigned int w ){
+unsigned int maskForMode(unsigned int x,unsigned int y,unsigned int z,unsigned int w ){
   unsigned int max = x > y ? x : y;
   max = z > max ? z : max;
   max = w > max ? w : max;
@@ -27,7 +27,7 @@ inline unsigned int maskForMode(unsigned int x,unsigned int y,unsigned int z,uns
   return mask;
 }
 
-inline void logDistanceSequence(sequence_t sequence){
+void logDistanceSequence(sequence_t sequence){
   #if DEBUG
   printf("Calculating distance for sequence: ");
   print_sequence(sequence);
@@ -35,7 +35,7 @@ inline void logDistanceSequence(sequence_t sequence){
   #endif
 }
 
-inline void logDistanceFromCluster(sequence_t sequence, int cluster, int distance){
+void logDistanceFromCluster(sequence_t sequence, int cluster, int distance){
   #if DEBUG
   printf("Distance from cluster %3ld:", cluster);
   print_sequence(sequence);
@@ -44,7 +44,7 @@ inline void logDistanceFromCluster(sequence_t sequence, int cluster, int distanc
   #endif
 }
 
-inline void logNearestDistance(int nearest, int min_distance) {
+void logNearestDistance(int nearest, int min_distance) {
   #if DEBUG
   printf("Shortest distance is cluster %3ld",nearest);
   printf("\n");
@@ -52,13 +52,13 @@ inline void logNearestDistance(int nearest, int min_distance) {
   #endif
 }
 
-inline void logLabel(unsigned int i, int label) {
+void logLabel(unsigned int i, int label) {
   #if DEBUG
   printf("label[%u] = %d\n",i, label);
   #endif
 }
 
-inline void logAddSquenceToGroup(int sequenceIndex, int cluster, const unsigned int* centroid_values){
+void logAddSquenceToGroup(int sequenceIndex, int cluster, const unsigned int* centroid_values){
   #if DEBUG
   printf("Added sequence %ld to cluster %d \n",sequenceIndex , cluster);
   printf("Group new values are:\n");
@@ -99,14 +99,17 @@ kmodes_result_t kmodes(kmodes_input_t input) {
     delta = 0; //Number of objects has diverged in current iteration
     memset (tmp_centroidCount,0,clusters * BIT_SIZE_OF(sequence_t) * sizeof(unsigned int));
 
+
     //For each point...
+
 
     for(size_t i = mpi_rank; i < data_size; i+= mpi_size) {
       unsigned int omp_distances[omp_threads_count];
       unsigned int omp_nearests[omp_threads_count];
-      for (int i = 0; i < omp_threads_count; i++){
-        omp_distances[i] = UINT_MAX;
-        omp_nearests[i] = -1;
+      
+      for (size_t j = 0; j < omp_threads_count; j++){
+        omp_distances[j] = UINT_MAX;
+        omp_nearests[j] = -1;
       }
 
       logDistanceSequence(data[i]);
@@ -122,7 +125,7 @@ kmodes_result_t kmodes(kmodes_input_t input) {
           omp_distances[threadId] = distance;
           omp_nearests[threadId] = j;
         }
-        logDistanceFromCluster(centroids[j], j, distance) ;
+        // logDistanceFromCluster(centroids[j], j, distance) ;
       }
 
       for(int j = 0;j < omp_threads_count;j++) {
@@ -136,10 +139,10 @@ kmodes_result_t kmodes(kmodes_input_t input) {
       if(label[i] != nearest) {
         delta++;
         label[i] = nearest;
-        logNearestDistance(nearest, min_distance);
+        // logNearestDistance(nearest, min_distance);
       }
 
-      logLabel(i, label[i]);
+      // logLabel(i, label[i]);
 
       unsigned int *tmp_centroid = &tmp_centroidCount[label[i] * BIT_SIZE_OF(sequence_t)];
       #pragma omp parallel for
@@ -159,7 +162,7 @@ kmodes_result_t kmodes(kmodes_input_t input) {
       }
 
 
-      logAddSquenceToGroup(i, label[i], tmp_centroid);
+      // logAddSquenceToGroup(i, label[i], tmp_centroid);
 
     }
 

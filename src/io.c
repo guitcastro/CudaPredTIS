@@ -5,6 +5,8 @@
 #include <stdio.h>
 #include <string.h>
 #include <assert.h>
+#include <inttypes.h>
+#include <stdio.h>
 
 #if BINARY_OUT
 
@@ -121,6 +123,18 @@ void printBits2(unsigned long int * ptr)
 
 }
 
+
+uint64_t strtoul64(const char *s) {
+  char* start = &s[0];
+  uint64_t total = 0;
+  while (*start)
+  {
+    total <<= 1;
+    if (*start++ == '1') total^=1;
+  }
+  return total;
+}
+
 kmodes_input_t read_data(const char *file) {
   size_t line_size = 255;
 
@@ -155,21 +169,24 @@ kmodes_input_t read_data(const char *file) {
   size_t current_line = 0;
   while(!feof(in)) {
     getline(&line,&line_size,in);
-    if(strlen(line) > 0){
+    if(strlen(line) > 0) {
 
-      char subbuff[64];
+      char subbuff[65];
+      memset(subbuff, '\0', 65);
 
       memcpy(subbuff, &line[0], 64);
-      unsigned long int x =  strtoul(subbuff, NULL,2);
+      uint64_t x = strtoul64(subbuff);
+
+      memset(subbuff, '\0', 65);
       memcpy(subbuff, &line[64], 64);
+      uint64_t y =  strtoul64(subbuff);
 
-      unsigned long int y =  strtoul(subbuff, NULL,2);
-      memset(subbuff, '\0', 64);
-      memcpy(subbuff, &line[128], strlen(line) - 128 + 1);
-
-      unsigned long int z =  strtoul(subbuff, NULL , 2);
+      memset(subbuff, '\0', 65);
+      memcpy(subbuff, &line[128], strlen(line) - 128 -1);
+      uint64_t z =  strtoul64(subbuff);
 
       sequence_t seq = {  x, y , z };
+
       data[current_line] = seq;
       current_line++;
     } else if (current_line + 1 < data_size) {

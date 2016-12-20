@@ -7,13 +7,14 @@
 //
 
 #include <stdio.h>
+#include <inttypes.h>
 #include "sequence.h"
 
 __OFFLOAD__MODIFIER__ void print_binary(void const * const ptr)
 {
   unsigned char *b = (unsigned char*) ptr;
   unsigned char byte;
-  size_t size = sizeof(unsigned long int);
+  size_t size = sizeof(uint64_t);
   int i, j;
 
   for (i=size-1;i>=0;i--)
@@ -52,7 +53,7 @@ sequence_t sum_sequence(sequence_t seq1,sequence_t seq2) {
   return sequence;
 }
 
-sequence_t div_sequence(sequence_t seq1, unsigned long div){
+sequence_t div_sequence(sequence_t seq1, uint64_t div){
   sequence_t sequence = { seq1.x / div , seq1.y / div, seq1.z / div };
   return sequence;
 }
