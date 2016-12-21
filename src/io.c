@@ -13,11 +13,11 @@
 extern int mpi_rank;
 
 //assumes little endian
-void printBits(FILE *out,unsigned long int * ptr)
+void printBits(FILE *out, uint64_t * ptr)
 {
   unsigned char *b = (unsigned char*) ptr;
   unsigned char byte;
-  size_t size = sizeof(unsigned long int);
+  size_t size = sizeof(uint64_t);
   int i, j;
 
   for (i=size-1;i>=0;i--)
@@ -32,7 +32,7 @@ void printBits(FILE *out,unsigned long int * ptr)
 
 }
 
-void printSpecialCase(FILE *out,unsigned long int *ptr){
+void printSpecialCase(FILE *out, uint64_t *ptr){
   printBits(out, ptr);
 }
 #else
@@ -51,7 +51,7 @@ unsigned char baseForBinary(unsigned char b){
 void printBits(FILE *out,void const * const ptr)
 {
   unsigned char *b = (unsigned char*) ptr;
-  size_t size = sizeof(unsigned long int);
+  size_t size = sizeof(uint64_t);
   int i;
   unsigned char byte;
   for (i=size-1;i>=0;i--)
@@ -64,14 +64,14 @@ void printBits(FILE *out,void const * const ptr)
   fputs("",out);
 }
 
-void printSpecialCase(FILE *out,unsigned long int *ptr)
+void printSpecialCase(FILE *out,uint64_t *ptr)
 {
   unsigned char *b = (unsigned char*) ptr;
   size_t size = sizeof(unsigned int); // only half of the bits will be used on Z
   int i;
 
   // remove caracteristic bits
-  unsigned long int threeLast = ((*ptr) & 0xFFFUL);
+  uint64_t threeLast = ((*ptr) & 0xFFFUL);
   *ptr >>= 12;
 
   unsigned char byte;
@@ -104,11 +104,11 @@ void printSpecialCase(FILE *out,unsigned long int *ptr)
 }
 #endif
 
-void printBits2(unsigned long int * ptr)
+void printBits2(uint64_t * ptr)
 {
   unsigned char *b = (unsigned char*) ptr;
   unsigned char byte;
-  size_t size = sizeof(unsigned long int);
+  size_t size = sizeof(uint64_t);
   int i, j;
 
   for (i=size-1;i>=0;i--)
@@ -124,7 +124,7 @@ void printBits2(unsigned long int * ptr)
 }
 
 
-uint64_t strtoul64(const char *s) {
+uint64_t strtoul64(char *s) {
   char* start = &s[0];
   uint64_t total = 0;
   while (*start)
