@@ -1,8 +1,32 @@
 #include "global.h"
 #include "kmodes.h"
+#include "sequence.h"
 #include <stdio.h>
 #include <string.h>
 #include <limits.h>
+
+void logDistanceFromCluster(sequence_t sequence, int cluster, int distance){
+  printf("Distance from cluster %d\n", cluster);
+  print_sequence(sequence);
+  printf("\n");
+  printf("Distance =: %d\n\n",distance);
+}
+
+void logNearestDistance(int nearest, int min_distance) {
+  #if DEBUG
+  printf("Shortest distance is cluster %d\n",nearest);
+  printf("\n");
+  printf("Distance = %d\n\n",min_distance);
+  #endif
+}
+
+void logDistanceSequence(sequence_t sequence){
+  #if DEBUG
+  printf("Calculating distance for sequence: ");
+  print_sequence(sequence);
+  printf("\n\n");
+  #endif
+}
 
 unsigned int maskForMode(unsigned int x,unsigned int y,unsigned int z,unsigned int w ){
   unsigned int max = x > y ? x : y;
@@ -37,13 +61,14 @@ kmodes_result_t kmodes(kmodes_input_t input) {
   sequence_t *centroids = (sequence_t*)calloc(clusters, sizeof(sequence_t));
   unsigned int *tmp_centroidCount = (unsigned int*)malloc(clusters * BIT_SIZE_OF(sequence_t) * sizeof(unsigned int));
 
+  printf("Data size is %d\n", data_size);
+
   memset (label,-1,data_size * sizeof(int));
 
   for(size_t i = 0;i < clusters;i++) {
     size_t h = i * data_size / clusters;
     centroids[i] = copy_sequence(data[h]);
   }
-
 
   int pc = 0;
   do {
@@ -60,24 +85,33 @@ kmodes_result_t kmodes(kmodes_input_t input) {
       min_distance = UINT_MAX;
       nearest = -1;
 
+// 	  logDistanceSequence(data[i]);
+
+
       for(size_t j = 0;j < clusters;j++) {
         distance = dist_sequence(data[i],centroids[j]);
         if(distance < min_distance) {
           nearest = j;
           min_distance = distance;
         }
+        // logDistanceFromCluster(centroids[j], j, distance);
       }
+
+
 
       if(label[i] != nearest) {
         delta++;
         label[i] = nearest;
       }
 
+//       logNearestDistance(nearest, min_distance);
+
+
       unsigned int *tmp_centroid = &tmp_centroidCount[label[i] * BIT_SIZE_OF(sequence_t)];
       for (size_t j=0;j<SEQ_DIM_BITS_SIZE;j++){
         // bits tmp_centroid[0] is less significative bit from sequence_t
         // bits tmp_centroid[0] = z << 0
-        unsigned long int mask = 1;
+        uint64_t mask = 1;
         if (data[i].z & (mask << j)){
           tmp_centroid[j]++;
         }
@@ -104,7 +138,7 @@ kmodes_result_t kmodes(kmodes_input_t input) {
         unsigned int *bitCountY = &tmp_centroid[j + SEQ_DIM_BITS_SIZE];
         unsigned int *bitCountZ = &tmp_centroid[j];
 
-        unsigned long int mask = maskForMode(bitCountX[0],bitCountX[1],bitCountX[2],bitCountX[3]);
+        uint64_t mask = maskForMode(bitCountX[0],bitCountX[1],bitCountX[2],bitCountX[3]);
         seq.x |= (mask << j);
         mask = maskForMode(bitCountY[0],bitCountY[1],bitCountY[2],bitCountY[3]);
         seq.y |= (mask << j);

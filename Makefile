@@ -11,8 +11,8 @@ export LANG=en_US.UTF-8
 export LC_ALL=en_US
 CUDA_HOME?=/Developer/NVIDIA/CUDA-7.5
 
-COMPILE_FLAGS+=${COMMON_FLAGS}
 COMMON_FLAGS=-g -std=c1x -Wall -o
+COMPILE_FLAGS+=${COMMON_FLAGS}
 CUDA_FLAGS=--ptxas-options=-v -arch=sm_30 -o
 #MPI_FLAGS=-I$(shell mpicc --showme:incdirs) $(addprefix -L,$(shell mpicc --showme:libdirs)) -fopenmp
 MPI_FLAGS= -fopenmp
@@ -42,7 +42,7 @@ kmodes_openmp: kmodes power
 	${ICC} -fopenmp objc/power.o objc/$@.o objc/sequence_icc.o objc/io.o objc/main.o -o bin/kmodes-openmp
 kmodes: create_objc_dir main io sequence
 	${CC} -c src/$@.c ${COMPILE_FLAGS} objc/$@.o
-	${CC} -o bin/kmodes objc/kmodes.o ${OBJC}
+	${CC} -g -o bin/kmodes objc/kmodes.o ${OBJC}
 power:
 	${CC} -c src/$@.c -pthread ${COMPILE_FLAGS} objc/$@.o
 sequence_cuda:

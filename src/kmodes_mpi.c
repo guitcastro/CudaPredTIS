@@ -37,7 +37,7 @@ void logDistanceSequence(sequence_t sequence){
 
 void logDistanceFromCluster(sequence_t sequence, int cluster, int distance){
   #if DEBUG
-  printf("Distance from cluster %3ld:", cluster);
+  printf("Distance from cluster %d\n", cluster);
   print_sequence(sequence);
   printf("\n");
   printf("Distance =: %d\n\n",distance);
@@ -46,7 +46,7 @@ void logDistanceFromCluster(sequence_t sequence, int cluster, int distance){
 
 void logNearestDistance(int nearest, int min_distance) {
   #if DEBUG
-  printf("Shortest distance is cluster %3ld",nearest);
+  printf("Shortest distance is cluster %d",nearest);
   printf("\n");
   printf("Distance = %d\n\n",min_distance);
   #endif
@@ -60,7 +60,7 @@ void logLabel(unsigned int i, int label) {
 
 void logAddSquenceToGroup(int sequenceIndex, int cluster, const unsigned int* centroid_values){
   #if DEBUG
-  printf("Added sequence %ld to cluster %d \n",sequenceIndex , cluster);
+  printf("Added sequence %d to cluster %d \n",sequenceIndex , cluster);
   printf("Group new values are:\n");
   for (int j=BIT_SIZE_OF(sequence_t)-1;j>=0; j--) {
     printf("%d",centroid_values[j]);
@@ -106,13 +106,14 @@ kmodes_result_t kmodes(kmodes_input_t input) {
     for(size_t i = mpi_rank; i < data_size; i+= mpi_size) {
       unsigned int omp_distances[omp_threads_count];
       unsigned int omp_nearests[omp_threads_count];
-      
+
       for (size_t j = 0; j < omp_threads_count; j++){
         omp_distances[j] = UINT_MAX;
         omp_nearests[j] = -1;
       }
 
-      logDistanceSequence(data[i]);
+      // logDistanceSequence(data[i]);
+
 
       unsigned int min_distance = UINT_MAX;
       long nearest = -1; //Nearest centroid nearest
@@ -125,7 +126,7 @@ kmodes_result_t kmodes(kmodes_input_t input) {
           omp_distances[threadId] = distance;
           omp_nearests[threadId] = j;
         }
-        // logDistanceFromCluster(centroids[j], j, distance) ;
+        // logDistanceFromCluster(centroids[j], j, distance);
       }
 
       for(int j = 0;j < omp_threads_count;j++) {
@@ -139,7 +140,7 @@ kmodes_result_t kmodes(kmodes_input_t input) {
       if(label[i] != nearest) {
         delta++;
         label[i] = nearest;
-        // logNearestDistance(nearest, min_distance);
+        logNearestDistance(nearest, min_distance);
       }
 
       // logLabel(i, label[i]);
@@ -149,7 +150,7 @@ kmodes_result_t kmodes(kmodes_input_t input) {
       for (size_t j=0;j<SEQ_DIM_BITS_SIZE;j++){
         // bits tmp_centroid[0] is less significative bit from sequence_t
         // bits tmp_centroid[0] = z << 0
-        unsigned long int mask = 1;
+        uint64_t mask = 1;
         if (data[i].z & (mask << j)){
           tmp_centroid[j]++;
         }
@@ -195,7 +196,7 @@ kmodes_result_t kmodes(kmodes_input_t input) {
         unsigned int *bitCountY = &tmp_centroid[j + SEQ_DIM_BITS_SIZE];
         unsigned int *bitCountZ = &tmp_centroid[j];
 
-        unsigned long int mask = maskForMode(bitCountX[0],bitCountX[1],bitCountX[2],bitCountX[3]);
+        uint64_t mask = maskForMode(bitCountX[0],bitCountX[1],bitCountX[2],bitCountX[3]);
         seq.x |= (mask << j);
         mask = maskForMode(bitCountY[0],bitCountY[1],bitCountY[2],bitCountY[3]);
         seq.y |= (mask << j);

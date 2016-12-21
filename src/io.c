@@ -153,9 +153,9 @@ kmodes_input_t read_data(const char *file) {
   rewind(in);
 
   while(!feof(in)) {
-    getline(&line,&line_size,in);
+    int characters = getline(&line,&line_size,in);
 
-    if(line[0] != '\n'){
+    if(characters > 1 && line[0] != '\n') {
       data_size++;
     }
   }
@@ -169,7 +169,7 @@ kmodes_input_t read_data(const char *file) {
   size_t current_line = 0;
   while(!feof(in)) {
     getline(&line,&line_size,in);
-    if(strlen(line) > 0) {
+    if(strlen(line) > 1) {
 
       char subbuff[65];
       memset(subbuff, '\0', 65);
@@ -194,8 +194,8 @@ kmodes_input_t read_data(const char *file) {
     }
   }
 
-  printf("Finish read input file\n");
 
+  printf("Finish read input file\n");
   fclose(in);
   kmodes_input_t input = { data, data_size, 0 };
   return input;
